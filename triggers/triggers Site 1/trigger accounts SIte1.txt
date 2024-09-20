@@ -1,0 +1,15 @@
+create or replace 
+trigger Synchrome_comptes
+before insert or delete or update on comptes1
+for each row 
+begin 
+begin 
+    if inserting then 
+    insert into userSite2.comptes1@lienSite2 values (:new.idcompte, :new.ncompte, :new.solde, :new.idclient, :new.idagence);
+    elsif deleting then 
+    delete usersite2.comptes1@liensite2 where idcompte=:old.idcompte;
+    elsif updating then 
+    update usersite2.comptes1@liensite2 set solde=:new.solde where idcompte=:new.idcompte;
+    end if;  
+    end;
+end;

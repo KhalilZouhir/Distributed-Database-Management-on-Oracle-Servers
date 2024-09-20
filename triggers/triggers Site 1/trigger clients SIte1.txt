@@ -1,0 +1,17 @@
+create or replace 
+trigger Synchrome_clients
+before insert or delete or update on clients1
+for each row 
+begin 
+   begin
+    if inserting then 
+    insert into userSite2.Clients1@lienSite2 values(:new.idclient, :new.nomclient, :new.prenomclient,
+:new.villeclient, :new.age);
+   elsif deleting then 
+   delete usersite2.clients1@liensite2 where idclient=:old.idclient;
+   elsif updating then 
+   update userSite2.clients1@liensite2 set villeclient=:new.villeclient,
+   age=:new.age where idclient=:new.idclient;
+   end if;
+   end;
+end;
