@@ -64,7 +64,7 @@ CREATE USER UserSite2 IDENTIFIED BY 2222;
 GRANT ALL PRIVILEGES TO UserSite2;
 ```
 
-**Cente:**
+**Centre:**
 ```sql
 CREATE USER UserCenter IDENTIFIED BY 1212;
 GRANT ALL PRIVILEGES TO UserCenter;
@@ -84,12 +84,86 @@ CREATE PUBLIC DATABASE LINK lienSite2
 CONNECT TO UserSite2 IDENTIFIED BY '2222' 
 USING 'Site2:1521/XE';
 ```
-u should create the other links betweeen sites based on the schema on the project overview 
+u should create the other links betweeen sites based on the schema (check the image on  project overview section)
+
 Ensure the Oracle network files listener.ora and tnsnames.ora are properly configured on each machine for these links to function correctly.
-#####here bruh ~~~~~~~~~~~~~~~~~~~~
+### Step 1: Configure the `listener.ora` and `tnsnames.ora` Files
+
+You need to configure the `listener.ora` and `tnsnames.ora` files on each Oracle server.
+
+* **File paths**:
+  * `listener.ora`: `C:\oraclexe\app\oracle\product\11.2.0\server\network\ADMIN\listener.ora`
+  * `tnsnames.ora`: `C:\oraclexe\app\oracle\product\11.2.0\server\network\ADMIN\tnsnames.ora`
+
+### Example of `listener.ora` configuration:
+```plaintext
+SID_LIST_LISTENER =
+  (SID_LIST =
+    (SID_DESC =
+      (SID_NAME = PLSExtProc)
+      (ORACLE_HOME = C:\oraclexe\app\oracle\product\11.2.0\server)
+      (PROGRAM = extproc)
+    )
+    (SID_DESC =
+      (SID_NAME = CLRExtProc)
+      (ORACLE_HOME = C:\oraclexe\app\oracle\product\11.2.0\server)
+      (PROGRAM = extproc)
+    )
+  )
+
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1))
+      (ADDRESS = (PROTOCOL = TCP)(HOST = Site1)(PORT = 1521))
+    )
+  )
+DEFAULT_SERVICE_LISTENER = (XE)
+```
+### Example of tnsnames.ora configuration:
+```
+XE =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = Site1)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = XE)
+    )
+  )
+
+EXTPROC_CONNECTION_DATA =
+  (DESCRIPTION =
+    (ADDRESS_LIST =
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1))
+    )
+    (CONNECT_DATA =
+      (SID = PLSExtProc)
+      (PRESENTATION = RO)
+    )
+  )
+```
+## Step 2: Define the `TNS_ADMIN` Environment Variable
+
+1. Go to **Start > Control Panel > System**.
+2. Select **Advanced system settings**.
+3. In the **System Properties** dialog, under the **Advanced** tab, click on **Environment Variables**.
+4. Under **System Variables**, click on **New**.
+5. In the **New System Variable** dialog, enter the following:
+   * **Variable Name**: `TNS_ADMIN`
+   * **Variable Value**: Path to the `tnsnames.ora` file (e.g., `C:\oraclexe\app\oracle\product\11.2.0\server\network\ADMIN`).
+6. Click **OK** in the Environment Variables dialog and again in the System Properties dialog.
+7. Restart your computer to ensure the new variable is recognized.
+
+
+
+
+
+
+
+
 ## Central Database Creation
 
-In the Center VM, create the central database schema consisting of the following tables:
+In the Center VM, create the central database schema consisting of the following tables (or check file Tables creation Centre VM):
 
 ```sql
 CREATE TABLE Client(
@@ -121,14 +195,14 @@ Generate sample data for the central database using a data generator like genera
 - 300 agencies
 - 1000 clients
 - 5000 accounts
-or u can just use the data in the repo folder (data)  
+or u can just use the data sample in folder "data sample" 
 Centre VM :
 
 ![image](https://github.com/user-attachments/assets/122538d0-03be-4310-95a4-4e2e23f482d8)
 
 ## Database Fragmentation
 
-Let the most frequently used selection queries in sites 1 and 2 be: implement the fragmented schemas from the central database at sites 1 and 2.
+Let the most frequently used selection queries in sites 1 and 2 be: implement the fragmented schemas from the central database at sites 1 and 2.(queries in the folder fragmentation)
 
 ![image](https://github.com/user-attachments/assets/810440e7-6c0d-4dba-ab48-b2875b773d0a)
 
@@ -178,7 +252,7 @@ where clients.idclient=comptes2.idclient);
   
 ## Synonyms and Fragment Duplication
 
-Create public synonyms in Center to reference tables located at Site1 and Site2 without exposing the physical locations of the tables:
+Create public synonyms in Center to reference tables located at Site1 and Site2 without exposing the physical locations of the tables (check synonyms.sql file):
 
 ```sql
 CREATE PUBLIC SYNONYM clients1 for clients1@LIENSITE1;
@@ -196,7 +270,7 @@ SELECT DISTINCT clients1.* from clients1;
 
 ## Fragment Duplication
 
-Duplicate fragments from Site1 to Site2 to ensure data consistency and redundancy. in site 2 :
+Duplicate fragments from Site1 to Site2 to ensure data consistency and redundancy. in site 2: (check Duplication of fragment Site1 in Site 2 file) 
 
 ```sql
 create table clients1 as (select * from clients1);
@@ -214,4 +288,15 @@ references clients1(idclient) on delete cascade;
 
 ![image](https://github.com/user-attachments/assets/d5beef0e-bbf6-4f99-87d3-720e2576c15f)
 
-## Triggers for Synchronization 
+## Triggers for Synchronization
+
+You can find in the `triggers` folder:
+
+* A trigger that synchronizes the duplication of write operations (insertions, deletions, and updates) in the `BDDSite1` fragment for the clients and the accounts.
+* The necessary triggers to synchronize the distribution of write operations from the central database (`BDD Centre`) to both `BDDSite1` and `BDDSite2`.
+
+## Video Demonstration
+
+A video demonstration showcasing the functionality of the triggers and how they synchronize data between `BDDSite1`, `BDDSite2`, and the central database is available.
+
+[Watch the demonstration here](link-to-your-video).
