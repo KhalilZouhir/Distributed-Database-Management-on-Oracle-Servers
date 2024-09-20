@@ -1,0 +1,15 @@
+CREATE TABLE AGENCES (IDAGENCE Integer primary key, 
+NOMAGENCE VARCHAR2(100), ADRESSE VARCHAR2(100), VILLE VARCHAR2(100));
+--------------------------------------------------------------------------------------
+CREATE TABLE CLIENTS 
+(IDCLIENT integer primary key 
+, NOMCLIENT VARCHAR2(100) 
+, PRENOMCLIENT VARCHAR2(100) 
+, VILLECLIENT VARCHAR2(100) 
+, AGE integer);
+-------------------------------------------------------------------------------------------
+CREATE TABLE COMPTES 
+(IDCOMPTE integer primary key, NCOMPTE VARCHAR2(100), SOLDE FLOAT, 
+IDCLIENT integer, IDAGENCE integer,
+foreign key (idclient) references clients(idclient),
+foreign key (idagence) references agences(idagence))
