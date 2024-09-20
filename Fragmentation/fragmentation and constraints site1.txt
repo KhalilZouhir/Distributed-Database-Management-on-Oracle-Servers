@@ -1,0 +1,14 @@
+pour le fragment site 1 :
+
+create table comptes1 as (select comptes.* from Center.clients@liencenter,center.comptes@liencenter 
+where clients.idclient=comptes.idclient
+and villeclient='casablanca' and solde<0);
+create table clients1 as (select distinct clients.* from center.clients@liencenter,comptes1
+where clients.idclient=comptes1.idclient);
+-------------------------------------------------------------------------------
+les contraintes d'intégrités :
+alter table clients1 add constraint c1 primary key(idclient);
+alter table comptes1 add constraint c2 primary key(idcompte)
+alter table comptes1 add constraint f1 foreign key(idclient)
+references clients1(idclient) on delete cascade;
+
