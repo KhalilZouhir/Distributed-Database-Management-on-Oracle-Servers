@@ -1,0 +1,70 @@
+create or replace 
+trigger Sync_upd_central_clients
+before  update on clients
+for each row
+begin
+declare 
+    n1 integer ; 
+    n2 integer ; 
+    s comptes.solde%type;
+    OV clients.villeclient%type:= :old.villeclient ; 
+    NV clients.villeclient%type:= :new.villeclient ;
+    n integer ; 
+    cursor cur1 is 
+    select * from comptes 
+    where idclient = :new.idclient 
+    and solde<0; 
+    cursor cur2 is 
+    select * from comptes 
+    where idclient = :new.idclient 
+    and solde >= 0; 
+    
+begin 
+    select solde into s from comptes 
+    where idclient = :new.idclient ; 
+    select count (idcompte) into n1 from comptes1 where idclient = :old.idclient ;
+    select count (idcompte) into n2 from comptes2 where idclient = :old.idclient ;
+        if(ov='Casablanca') then 
+            if(nv='Casablanca') then 
+                if(n1>0) then
+                    update clients1 set age = :new.age where idclient = :new.idclient ;
+                end if ; 
+            else 
+                if(n1>0) then 
+                    delete from clients1 where idclient = :new.idclient ;
+                    end if;
+                    if(nv='Rabat ') then 
+                        select count (idcompte) into n from comptes where idclient = :new.idclient and solde>=0;
+                        if(n>0)then
+                        insert into clients2 values (:new.idclient, :new.nomclient,:new.prenomclient, :New.villeclient, :New.Age);
+                          for r in cur2 loop 
+                            insert into comptes2 values r ; 
+                        end loop ; 
+                        end if ; 
+                    end if ; 
+        end if ; 
+             
+        elsif(ov='Rabat ') then 
+            if(nv='Rabat ') then 
+                if(n2>0) then
+                    update clients2 set age = :new.age where idclient = :new.idclient ;
+                end if ; 
+                
+            else 
+                if(n2>0) then 
+                    delete from clients2 where idclient = :new.idclient ; 
+                    end if;
+                    if(nv='Casablanca') then 
+                    select count(idcompte) into n from comptes where idclient = :new.idclient and solde <0;
+                      if(n>0)then
+                        insert into clients2 values (:new.idclient, :new.nomclient,:new.prenomclient, :New.villeclient, :New.Age);
+                          for r in cur1 loop 
+                            insert into comptes2 values r ; 
+                        end loop ; 
+                        end if ; 
+                    end if ; 
+        end if ; 
+  
+            end if;
+            end;
+            end;

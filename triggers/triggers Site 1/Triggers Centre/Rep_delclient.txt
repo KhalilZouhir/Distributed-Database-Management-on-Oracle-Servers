@@ -1,0 +1,27 @@
+create or replace 
+trigger rep_delclient
+before delete on clients
+for each row
+BEGIN
+declare
+
+
+n1 integer;
+n2 integer;
+
+begin
+select count(idcompte) into n1 from comptes1 where idclient=:new.idclient;
+select count(idcompte) into n2 from comptes2 where idclient=:new.idclient ;
+
+
+IF(:old.villeclient='Casablanca' and n1>0)then
+ 
+   DELETE from comptes1 where idclient=:old.idclient;
+  end if;
+IF(:old.villeclient='Rabat ' and n2>0)then
+  
+   DELETE from COMPTES2 where idclient=:old.idclient;
+  end if;
+
+end;
+END;

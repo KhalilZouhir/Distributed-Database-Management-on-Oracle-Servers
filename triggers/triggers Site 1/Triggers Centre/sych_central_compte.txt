@@ -1,0 +1,77 @@
+create or replace 
+trigger Sync_central_compte
+before insert or update on comptes
+for each row
+BEGIN
+declare 
+V CLIENTS.VILLECLIENT%TYPE;
+S COMPTES.SOLDE%TYPE :=:new.solde;
+r clients%rowtype;
+n integer;
+os comptes.solde%type:=:old.solde;
+ns comptes.solde%type:=:new.solde;
+
+BEGIN
+select villeclient into V from clients
+where  idclient=:new.idclient;
+if inserting then
+if(V='Casablanca' and S<0) then
+      select count(idclient) into n from clients1 where idclient=:new.idclient;
+    if(n=0) then
+      select * into r from clients 
+      where idclient=:new.idclient;
+      insert into clients1 values r;
+    END IF;
+    insert into comptes1 values (:new.idcompte, :new.ncompte, :new.solde, :new.idclient, :new.idagence);
+ELSIF (V='Rabat ' and S>=0) then
+     select count(idclient) into n from clients2 where idclient=:new.idclient;
+    if(n=0) then
+      select * into r from clients 
+      where idclient=:new.idclient;
+      insert into clients2 values r;
+    END IF;
+    insert into comptes2 values (:new.idcompte, :new.ncompte, :new.solde, :new.idclient, :new.idagence);
+end if;
+else if updating then 
+  if(V='Casablanca' and os<0) then 
+      if(ns<0) then
+        update comptes1 set solde=ns where idcompte=:new.idcompte;
+      else delete from comptes1 where idcompte=:new.idcompte;
+      select count(*) into n from comptes1 where idclient=:new.idclient;
+        if (n=0) then
+        delete from clients1 where idclient=:new.idclient;
+        end if;
+        end if;
+  elsif (V='Casablanca' and os>=0) then
+      if(ns<0) then
+      select count(*) into n from clients1 where idclient=:new.idclient;
+          if(n=0) then
+      select * into r from clients where idclient=:new.idclient;
+      insert into clients1 values r;
+          end if;
+      insert into comptes1 values (:new.idcompte, :new.ncompte, :new.solde, :new.idclient, :new.idagence) ;
+      end if;
+else if(V='Rabat ' and os>=0) then 
+      if(ns>=0) then
+        update comptes2 set solde=ns where idcompte=:new.idcompte;
+      else delete from comptes2 where idcompte=:new.idcompte;
+      select count(*) into n from comptes2 where idclient=:new.idclient;
+        if (n=0) then
+        delete from clients2 where idclient=:new.idclient;
+        end if;
+      end if;
+ elsif (V='Rabat ' and os<0) then
+        if(ns>=0) then
+      select count(*) into n from clients2 where idclient=:new.idclient;
+            if(n=0) then
+      select * into r from clients where idclient=:new.idclient;
+      insert into clients2 values r;
+            end if;
+      insert into comptes2 values (:new.idcompte, :new.ncompte, :new.solde, :new.idclient, :new.idagence) ;
+       end if;
+end if;
+end if;
+end if;
+end if;
+END;
+end;

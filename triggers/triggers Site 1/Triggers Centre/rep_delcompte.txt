@@ -1,0 +1,33 @@
+create or replace 
+trigger rep_delcompte
+before delete on comptes
+for each row
+declare 
+pragma autonomous_transaction;
+
+BEGIN
+declare
+V clients.villeclient%type;
+OS comptes.Solde%type:=:old.Solde;
+n integer;
+
+begin
+select villeclient into V from clients where idclient=:old.idclient;
+
+
+IF(V='Casablanca' and OS<0)then
+ DELETE Comptes1 where idcompte=:old.idcompte;
+ select count(idcompte) into n from Comptes1 where idclient=:old.idclient;
+ if(n=0)then
+  DELETE from Clients1  where idclient=:old.idclient;
+ end if;
+ELSIF(V='Rabat ' and OS>=0)then
+ DELETE from Comptes2 where idcompte=:old.idcompte;
+ select count(idcompte) into n from Comptes2 where idclient=:old.idclient;
+ if(n=0)then
+  DELETE from Clients2  where idclient=:old.idclient;
+ end if;
+END IF;
+commit;
+end;
+END;
