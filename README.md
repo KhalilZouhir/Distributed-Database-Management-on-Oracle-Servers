@@ -299,4 +299,4 @@ You can find in the `triggers` folder:
 
 A video demonstration showcasing the functionality of the triggers and how they synchronize data between `BDDSite1`, `BDDSite2`, and the central database is available.
 
-[Watch the demonstration here](link-to-your-video).
+[Watch the demonstration here](https://youtu.be/JTP-el1fU5E).
